@@ -5,12 +5,12 @@ your application is actually started. For example, in a cloud provider,
 important IP addresses and port numbers are often assigned dynamically.
 This information is provided to the processes via environment variables.
 
-This approach has been codified in the link:https://12factor.net/config[12-Factor App].
+This approach has been codified as part of the link:https://12factor.net/config[12-Factor App] manifesto.
 
-However, in most Clojure projects, configuration is done primarily in
-link:https://github.com/edn-format/edn[EDN format].
+However, in most Clojure projects, configuration is done primarily in terms of
+link:https://github.com/edn-format/edn[EDN format] configuration files.
 
-This library provides a number of reader macros that allow a EDN configuration file
+This library provides a number of reader macros that allow an EDN configuration file
 to reference data provided in environment variables, JVM system properties, or elsewhere.
 
 link:http://walmartlabs.github.io/dyn-edn/[API Documentation]
