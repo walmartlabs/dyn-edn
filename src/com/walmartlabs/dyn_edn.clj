@@ -1,0 +1,88 @@
+(ns com.walmartlabs.dyn-edn
+  "Support for #dyn/prop and related reader macros."
+  (:require
+    [clojure.spec.alpha :as s]
+    [clojure.string :as str]))
+
+(s/def ::non-blank-str (s/and string?
+                              (complement str/blank?)))
+(s/def ::any (constantly true))
+
+(defn ^:private long-reader
+  [v]
+  (s/assert ::non-blank-str v)
+  (Long/parseLong v))
+
+(defn ^:private keyword-reader
+  [v]
+  (s/assert ::non-blank-str v)
+  (if-let [slashx (str/index-of v \/)]
+    (keyword (subs v 0 slashx) (subs v (inc slashx)))
+    (keyword v)))
+
+(s/def ::dyn-prop (s/or :simple ::key
+                        :defaulted (s/tuple ::key ::any)))
+
+(s/def ::key (s/or :string string?
+                   :keyword keyword?
+                   :symbol symbol?))
+
+(defn ^:private dyn-prop-reader
+  [properties]
+  (let [missing-default (Object.)]
+    (fn [v]
+      (s/assert ::dyn-prop v)
+      (let [[k default-value] (if (sequential? v)
+                                v
+                                [v missing-default])
+            result (get properties k default-value)]
+        (if-not (identical? missing-default result)
+          result
+          (throw (ex-info (format "Dynamic property %s not found" (pr-str k))
+                          {:key k
+                           :property-keys (keys properties)})))))))
+
+(defn ^:private join-reader
+  [v]
+  (s/assert (s/coll-of (s/nilable string?)) v)
+  (apply str v))
+
+(defn readers
+  "Creates a map of readers:
+
+  * `#dyn/prop`
+  * `#dyn/keyword`
+  * `#dyn/long`
+  * `#dyn/join`
+
+  The properties are used when creating the `#dyn/prop` reader."
+  [properties]
+  {'dyn/prop (dyn-prop-reader properties)
+   'dyn/keyword keyword-reader
+   'dyn/long long-reader
+   'dyn/join join-reader})
+
+(defn env-readers
+  "Creates a properties map from environment variables and JVM system properties.
+
+  Environment variables are added to the map twice: once with direct string keys,
+  then again with the string key converted to a symbol.  This allows for bare
+  symbols in the EDN to resolve.
+
+  System properties are then added as key/value pairs; the keys are always strings.
+
+  Finally, the provided properties are merged in and the result passed to [[readers]]."
+  ([]
+   (env-readers nil))
+  ([properties]
+   (let [env (->> (System/getenv)
+                  (into {})
+                  (reduce-kv
+                    (fn [m k v]
+                      (assoc m k v
+                             (symbol k) v))
+                    {}))]
+     (readers
+       (merge env
+              (System/getProperties)
+              properties)))))

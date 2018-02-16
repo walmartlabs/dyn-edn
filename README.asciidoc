@@ -1,0 +1,113 @@
+== dyn-edn
+
+Often, especially in production, you don't know all of the configuration until
+your application is actually started. For example, in a cloud provider,
+important IP addresses and port numbers are often assigned dynamically.
+This information is provided to the processes via environment variables.
+
+This approach has been codified in the link:https://12factor.net/config[12-Factor App].
+
+However, in most Clojure projects, configuration is done primarily in
+link:https://github.com/edn-format/edn[EDN format].
+
+This library provides a number of reader macros that allow a EDN configuration file
+to reference data provided in environment variables, JVM system properties, or elsewhere.
+
+link:http://walmartlabs.github.io/dyn-edn/[API Documentation]
+
+===  Overview
+
+`dyn-edn` introduces a little bit of indirection into the otherwise fixed content
+of an EDN file, in the form of reader macros.
+
+The dynamic bits are __properties__:
+
+  * Shell environment variables
+
+  * JVM System properties
+
+  * Explicitly provided properties
+
+The following reader macros are available:
+
+`#dyn/prop`::
+    Accesses dynamic properties.
+
+`#dyn/join`::
+    Joins a number of values together to form a single string; this is used when
+    building a single string from a mix of properties and static text.
+
+`#dyn/long`::
+    Converts a string to a long value.  Typically used with `#dyn/prop`.
+
+`#dyn/keyword`::
+    Converts a string to a keyword value. Typically used with `#dyn/prop`.
+
+Here's an example showing all the variants:
+
+[source,clojure]
+----
+{:connection-pool
+  {:user-name #dyn/prop [DB_USER "accountsuser"]
+   :user-pw #dyn/prop DB_PW
+   :url  #dyn/join ["jdbc:postgresql://"
+                       #dyn/prop [DB_HOST "localhost"]
+                       ":"
+                       #dyn/prop [DB_PORT "5432"]
+                       "/accounts"]}
+ :web-server
+  {:port #dyn/long #dyn/port "WEB_PORT"}}
+----
+
+In this example, the `DB_USER`, `DB_PW`, `DB_HOST`, and `DB_PORT`, and `WEB_PORT` environment variables
+all play a role (though `DB_USER` is optional, since it has a default value).
+
+After parsing and reader macro expansion, the resulting data might be:
+
+[source,clojure]
+----
+{:connection-pool
+  {:user-name "accountsuser"
+   :user-pw "change-me"
+   :url  "jdbc:postgresql://db.example.org:5432/accounts"]}
+ :web-server
+  {:port 8192}}
+----
+
+=== Property Lookup
+
+The `#dyn/prop` macro's first (or only) argument is a key.
+It may be a symbol, keyword, or string.
+
+The optional second value is the default used when property lookup fails.
+
+An exception is thrown if the property is not found and there is no default.
+
+For environment variables or JVM system properties, the dynamic value that replaces
+the macro will always be a string.
+For explicit properties, the dynamic value can be any Clojure data: string, number, keyword, even
+a map or vector.
+
+=== Usage
+
+The `env-readers` function returns a map of readers; it may optionally be passed additional
+properties beyond those obtained from environment variables and JVM system properties.
+
+[source,clojure]
+----
+(require '[clojure.edn :as edn]
+         '[clojure.java.io :as io]
+         '[com.walmartlabs.dyn-edn :refer [env-readers])
+
+(->> "config.edn"
+     io/resource
+     slurp
+     (edn/read-string {:readers (env-readers)})
+----
+
+
+=== License
+
+Copyright © 2018 Walmart Labs
+
+Distributed under the Apache Software License 2.0.
