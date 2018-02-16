@@ -1,5 +1,7 @@
 == dyn-edn
 
+image:https://img.shields.io/clojars/v/com.walmartlabs/dyn-edn.svg[Clojars Project, link="https://clojars.org/com.walmartlabs/dyn-edn"]
+
 Often, especially in production, you don't know all of the configuration until
 your application is actually started. For example, in a cloud provider,
 important IP addresses and port numbers are often assigned dynamically.
