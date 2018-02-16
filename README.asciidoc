@@ -56,7 +56,7 @@ Here's an example showing all the variants:
                        #dyn/prop [DB_PORT "5432"]
                        "/accounts"]}
  :web-server
-  {:port #dyn/long #dyn/port "WEB_PORT"}}
+  {:port #dyn/long #dyn/prop "WEB_PORT"}}
 ----
 
 In this example, the `DB_USER`, `DB_PW`, `DB_HOST`, and `DB_PORT`, and `WEB_PORT` environment variables
