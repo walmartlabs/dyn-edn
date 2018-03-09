@@ -33,7 +33,8 @@ The dynamic bits are __properties__:
 The following reader macros are available:
 
 `#dyn/prop`::
-    Accesses dynamic properties.
+    Accesses dynamic properties. The value is either a key, or a vector of a key
+    and a default value.
 
 `#dyn/join`::
     Joins a number of values together to form a single string; this is used when
@@ -62,33 +63,46 @@ Here's an example showing all the variants:
 ----
 
 In this example, the `DB_USER`, `DB_PW`, `DB_HOST`, and `DB_PORT`, and `WEB_PORT` environment variables
-all play a role (though `DB_USER` is optional, since it has a default value).
+all play a role.
+`DB_USER` and `DB_PORT` are optional, since default values have been provided.
 
-After parsing and reader macro expansion, the resulting data might be:
+Let's assume that the `DB_HOST` environment variable is `db.example.org`,
+`DB_PW` is `change-me`, and `WEB_PORT` was `8192`,
+and the other referenced environment variables are unset.
+
+After parsing and reader macro expansion, the resulting data will be:
 
 [source,clojure]
 ----
 {:connection-pool
   {:user-name "accountsuser"
-   :user-pw "change-me"
-   :url  "jdbc:postgresql://db.example.org:5432/accounts"]}
+   :user-pw   "change-me"
+   :url        "jdbc:postgresql://db.example.org:5432/accounts"]}
  :web-server
   {:port 8192}}
 ----
 
+Notice that combining `#dyn/long` and `#dyn/prop` has ensured that the web server port number is present
+as a number, or a string.
+
 === Property Lookup
 
-The `#dyn/prop` macro's first (or only) argument is a key.
-It may be a symbol, keyword, or string.
-
-The optional second value is the default used when property lookup fails.
+The `#dyn/prop` macro's value is a either key, or a vector of a key and a default value.
+The key may be a symbol, keyword, or string.
 
 An exception is thrown if the property is not found and there is no default.
 
 For environment variables or JVM system properties, the dynamic value that replaces
 the macro will always be a string.
-For explicit properties, the dynamic value can be any Clojure data: string, number, keyword, even
+For explicit properties, the dynamic value is typically a string, but can be any Clojure data: string, number, keyword, even
 a map or vector.
+
+Underneath the covers, the key is a simple lookup in a map.
+The map is a merge of all environment variables, all JVM system properties, and any application-provided
+properties.
+
+As a convinience, each environment variable is added _twice_: one using a string key, and once
+with the string key converted to a symbol.
 
 === Usage
 
@@ -107,9 +121,8 @@ properties beyond those obtained from environment variables and JVM system prope
      (edn/read-string {:readers (env-readers)})
 ----
 
-
 === License
 
-Copyright © 2018 Walmart Labs
+Copyright (c) [2018]-present, Wal-Mart Store, Inc.
 
 Distributed under the Apache Software License 2.0.
