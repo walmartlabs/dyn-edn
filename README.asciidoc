@@ -83,7 +83,7 @@ After parsing and reader macro expansion, the resulting data will be:
 ----
 
 Notice that combining `#dyn/long` and `#dyn/prop` has ensured that the web server port number is present
-as a number, or a string.
+as a number, not as a string.
 
 === Property Lookup
 
@@ -97,12 +97,16 @@ the macro will always be a string.
 For explicit properties, the dynamic value is typically a string, but can be any Clojure data: string, number, keyword, even
 a map or vector.
 
-Underneath the covers, the key is a simple lookup in a map.
+Underneath the covers, the key is used for a simple lookup in a map.
 The map is a merge of all environment variables, all JVM system properties, and any application-provided
 properties.
 
-As a convinience, each environment variable is added _twice_: one using a string key, and once
+As a convinience, each environment variable is added to the map _twice_: one using a string key, and once
 with the string key converted to a symbol.
+
+JVM system properties are added using string keys and string values.
+
+Application properties are added exactly as provided; typically this means keyword keys and any kind of data values.
 
 === Usage
 
