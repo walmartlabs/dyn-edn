@@ -101,7 +101,7 @@ Underneath the covers, the key is used for a simple lookup in a map.
 The map is a merge of all environment variables, all JVM system properties, and any application-provided
 properties.
 
-As a convinience, each environment variable is added to the map _twice_: one using a string key, and once
+As a convenience, each environment variable is added to the map _twice_: one using a string key, and once
 with the string key converted to a symbol.
 
 JVM system properties are added using string keys and string values.
