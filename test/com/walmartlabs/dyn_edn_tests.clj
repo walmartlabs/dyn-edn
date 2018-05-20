@@ -39,6 +39,11 @@
          (read-edn {'HTTP_PORT "8080"}
                    "{:long #dyn/long #dyn/prop HTTP_PORT}"))))
 
+(deftest dyn-boolean
+  (is (= {:boolean true}
+         (read-edn {'PRODUCTION "true"}
+                   "{:boolean #dyn/boolean #dyn/prop PRODUCTION}"))))
+
 (deftest dyn-join
   (is (= {:url "http://example.org:8080/status"}
          (read-edn {'PORT "8080"

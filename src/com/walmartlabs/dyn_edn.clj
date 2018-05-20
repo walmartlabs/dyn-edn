@@ -34,6 +34,11 @@
     (keyword (subs v 0 slashx) (subs v (inc slashx)))
     (keyword v)))
 
+(defn ^:private boolean-reader
+  [v]
+  (s/assert ::non-blank-str v)
+  (Boolean/parseBoolean v))
+
 (s/def ::dyn-prop (s/or :simple ::key
                         :defaulted (s/tuple ::key ::any)))
 
@@ -67,6 +72,7 @@
   * `#dyn/prop`
   * `#dyn/keyword`
   * `#dyn/long`
+  * `#dyn/boolean`
   * `#dyn/join`
 
   The properties are used when creating the `#dyn/prop` reader."
@@ -74,6 +80,7 @@
   {'dyn/prop (dyn-prop-reader properties)
    'dyn/keyword keyword-reader
    'dyn/long long-reader
+   'dyn/boolean boolean-reader
    'dyn/join join-reader})
 
 (defn env-readers

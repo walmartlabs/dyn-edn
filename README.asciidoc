@@ -43,6 +43,9 @@ The following reader macros are available:
 `#dyn/long`::
     Converts a string to a long value.  Typically used with `#dyn/prop`.
 
+`#dyn/boolean`::
+    Converts a string to a boolean value.  Typically used with `#dyn/prop`.
+
 `#dyn/keyword`::
     Converts a string to a keyword value. Typically used with `#dyn/prop`.
 
