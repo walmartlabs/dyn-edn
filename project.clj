@@ -1,6 +1,6 @@
-(defproject com.walmartlabs/dyn-edn "0.1.0"
+(defproject com.walmartlabs/dyn-edn "0.2.0"
   :description "Dynamic properties in EDN content"
-  :url "http://github.org/hlship/dyn-edn"
+  :url "http://github.org/walmartlabs/dyn-edn"
   :license {:name "Apache Software License"
             :url "https://www.apache.org/licenses/LICENSE-2.0.html"}
   :dependencies [[org.clojure/clojure "1.9.0"]]
