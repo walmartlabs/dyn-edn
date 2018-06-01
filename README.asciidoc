@@ -90,7 +90,7 @@ as a number, not as a string.
 
 === Property Lookup
 
-The `#dyn/prop` macro's value is a either key, or a vector of a key and a default value.
+The `#dyn/prop` macro's value is either single key, or a vector of a key and a default value.
 The key may be a symbol, keyword, or string.
 
 An exception is thrown if the property is not found and there is no default.
