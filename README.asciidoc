@@ -15,7 +15,7 @@ link:https://github.com/edn-format/edn[EDN format] configuration files.
 This library provides a number of reader macros that allow an EDN configuration file
 to reference data provided in environment variables, JVM system properties, or elsewhere.
 
-link:http://walmartlabs.github.io/dyn-edn/[API Documentation]
+link:http://walmartlabs.github.io/apidocs/dyn-edn/[API Documentation]
 
 ===  Overview
 
