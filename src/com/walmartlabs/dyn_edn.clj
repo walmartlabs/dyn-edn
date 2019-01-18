@@ -86,24 +86,19 @@
 (defn env-readers
   "Creates a properties map from environment variables and JVM system properties.
 
-  Environment variables are added to the map twice: once with direct string keys,
+  Environment variables and properties are added to the map twice: once with direct string keys,
   then again with the string key converted to a symbol.  This allows for bare
   symbols in the EDN to resolve.
 
-  System properties are then added as key/value pairs; the keys are always strings.
-
-  Finally, the provided properties are merged in and the result passed to [[readers]]."
+  Finally, the provided properties are passed to [[readers]]."
   ([]
    (env-readers nil))
   ([properties]
-   (let [env (->> (System/getenv)
-                  (into {})
-                  (reduce-kv
-                    (fn [m k v]
-                      (assoc m k v
-                             (symbol k) v))
-                    {}))]
-     (readers
-       (merge env
-              (System/getProperties)
-              properties)))))
+   (let [system-props (merge (into {} (System/getenv))
+                             (System/getProperties))]
+     (-> (merge (reduce-kv
+                  (fn [m k v]
+                    (assoc m (symbol k) v))
+                  system-props system-props)
+                properties)
+         readers))))
