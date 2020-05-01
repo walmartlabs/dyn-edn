@@ -114,7 +114,7 @@ Application properties are added exactly as provided; typically this means keywo
 === Usage
 
 The `env-readers` function returns a map of readers; it may optionally be passed additional
-properties beyond those obtained from environment variables and JVM system properties.
+properties beyond those obtained from docker secrets, environment variables and JVM system properties.
 
 [source,clojure]
 ----
@@ -127,6 +127,63 @@ properties beyond those obtained from environment variables and JVM system prope
      slurp
      (edn/read-string {:readers (env-readers)})
 ----
+
+=== Usage with Docker secrets
+
+In a docker swarm secrets can be passed to a container when the container is added as a service to the swarm. In the default case,
+these secrets are mounted from tmpfs at /run/secrets although this location can be specified when the service is
+created.
+
+e.g.
+
+[source,sh]
+----
+$ printf <secret> | docker secret create my_secret -
+
+$ docker service create --replicas 1 --name <servicename> \
+    --secret src=my-secret,target="/mysecrets/mysecret" \
+    --publish published=8081,target=8081 <image:tag>
+----
+
+The above will create a secret called `my-secret` and make it available as a file at `/mysecrets/mysecret`.
+
+The following can be used to recover the secret within the Docker conainer:
+
+[source,clojure]
+----
+(require '[clojure.edn :as edn]
+         '[clojure.java.io :as io]
+         '[com.walmartlabs.dyn-edn :refer [env-readers])
+
+(->> "config.edn"
+     io/resource
+     slurp
+     (edn/read-string
+       {:readers (env-readers
+                   {:docker-secrets-dir "/mysecrets"})})
+----
+
+If the `:docker-secrets-dir` is not available as a property, it's assumed that all secrets have been mounted at
+`/run/secrets` (which is Docker's default location).
+
+NOTE: In order for secrets to be available under this library, it is assumed that all secrets are mounted in the same directory.
+
+Using the example above
+
+[source,sh]
+----
+$ printf 5432 | docker secret create DB_PORT -
+
+$ docker service create --replicas 1 --name <servicename> \
+    --secret DB_PORT \
+    --publish published=8081,target=8081 <image:tag>
+----
+
+and if DB_PORT is **not** in the Environment of the container, the outcome will be the same. The value of the parameter
+will be read from the file at `/run/secrets/DB_HOST` and made available.
+
+NOTE: the value of an env variable with a particular name will overwrite a secret with
+that name i.e. an environment variable has precedence.
 
 === License
 
