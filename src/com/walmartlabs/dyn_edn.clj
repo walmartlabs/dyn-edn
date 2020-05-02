@@ -16,7 +16,8 @@
   "Support for #dyn/prop and related reader macros."
   (:require
     [clojure.spec.alpha :as s]
-    [clojure.string :as str]))
+    [clojure.string :as str]
+    [clojure.java.io :as io]))
 
 (s/def ::non-blank-str (s/and string?
                               (complement str/blank?)))
@@ -83,8 +84,39 @@
    'dyn/boolean boolean-reader
    'dyn/join join-reader})
 
+(defn ^:private get-secrets
+  ([]
+   (get-secrets nil))
+  ([docker-secret-loc]
+   (reduce
+     (fn[accum file]
+       (let [s-value (slurp file)]
+         (assoc
+           accum
+           (.getName file)
+           s-value
+           (symbol (.getName file))
+           s-value)))
+     {}
+     (.listFiles
+       (io/file
+         (if (and docker-secret-loc (.isAbsolute (io/file docker-secret-loc)))
+           docker-secret-loc
+           "/run/secrets"))
+       (reify
+         java.io.FileFilter
+         (accept[this f]
+           (and (.isFile f)
+                (not (.isHidden f))
+                (= (.getAbsolutePath f) (.getCanonicalPath f)))))))))
+
 (defn env-readers
-  "Creates a properties map from environment variables and JVM system properties.
+  "Creates a properties map from docker secrets, environment variables and
+  JVM system properties.
+
+  Docker secrets are added to the map twice: once with direct string keys,
+  then again with the string key converted to a symbol.  This allows for bare
+  symbols in the EDN to resolve.
 
   Environment variables are added to the map twice: once with direct string keys,
   then again with the string key converted to a symbol.  This allows for bare
@@ -92,7 +124,11 @@
 
   System properties are then added as key/value pairs; the keys are always strings.
 
-  Finally, the provided properties are merged in and the result passed to [[readers]]."
+  Finally, the provided properties are merged in and the result passed to [[readers]].
+
+  The order of precedence is properties, system properties, docker secrets and environment
+  variables i.e a variable defined in properties will be preferred to the same named variable
+  in the environment."
   ([]
    (env-readers nil))
   ([properties]
@@ -102,8 +138,10 @@
                     (fn [m k v]
                       (assoc m k v
                              (symbol k) v))
-                    {}))]
+                    {}))
+         secrets (get-secrets (get properties :docker-secrets-dir))]
      (readers
        (merge env
+              secrets
               (System/getProperties)
               properties)))))
