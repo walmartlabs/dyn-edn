@@ -1,0 +1,28 @@
+name: test
+
+on: [push]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: 21
+      - name: Clojure CLI
+        uses: DeLaGuardo/setup-clojure@master
+        with:
+          cli: '1.12.1.1550'
+      - name: Cache All The Things
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.m2/repository
+            ~/.gitlibs
+            ~/.clojure
+            ~/.cpcache
+          key: ${{ runner.os }}-${{ hashFiles('**/deps.edn') }}
+      - name: Run Tests
+        run: clojure -Sdeps '{:paths ["src" "test"] :deps {io.github.cognitect-labs/test-runner {:git/tag "v0.5.1" :git/sha "dfb30dd"}}}' -X cognitect.test-runner.api/test

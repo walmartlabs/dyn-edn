@@ -12,7 +12,7 @@
 ;;; See the License for the specific language governing permissions and
 ;;; limitations under the License."
 
-(ns com.walmartlabs.dyn-edn-tests
+(ns com.walmartlabs.dyn-edn-test
   (:require
     [clojure.test :refer [deftest is are]]
     [clojure.edn :as edn]

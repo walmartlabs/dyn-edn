@@ -1,14 +1,14 @@
-(ns com.walmartlabs.dyn-edn-test-secret
+(ns com.walmartlabs.dyn-edn-secret-test
   (:require
     [clojure.test :refer :all]
     [clojure.edn :as edn]
     [com.walmartlabs.dyn-edn :refer [env-readers]]
-    [com.walmartlabs.dyn-edn-tests]
+    [com.walmartlabs.dyn-edn-test]
     [clojure.java.io :as io])
   (:import (clojure.lang ExceptionInfo)
            (java.nio.file Files Path)))
 
-(def read-edn #'com.walmartlabs.dyn-edn-tests/read-edn)
+(def read-edn #'com.walmartlabs.dyn-edn-test/read-edn)
 (def get-secrets #'com.walmartlabs.dyn-edn/get-secrets)
 
 (defn acquire-resource []
